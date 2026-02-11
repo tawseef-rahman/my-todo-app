@@ -43,7 +43,8 @@ node Todo {
     has id: str,
         title: str,
         completed: bool = False,
-        category: str = "other";
+        category: str = "other",
+        due_date: str = "";
 }
 
 node MealIngredient {
@@ -58,19 +59,22 @@ node MealIngredient {
 
 walker:priv AddTodo {
     has title: str;
+    has due_date: str = "";
 
     can create with Root entry {
         category = str(categorize(self.title)).split(".")[-1].lower();
         new_todo = here ++> Todo(
             id=str(uuid4()),
             title=self.title,
-            category=category
+            category=category,
+            due_date=self.due_date
         );
         report {
             "id": new_todo[0].id,
             "title": new_todo[0].title,
             "completed": new_todo[0].completed,
-            "category": new_todo[0].category
+            "category": new_todo[0].category,
+            "due_date": new_todo[0].due_date
         };
     }
 }
@@ -87,7 +91,8 @@ walker:priv ListTodos {
             "id": here.id,
             "title": here.title,
             "completed": here.completed,
-            "category": here.category
+            "category": here.category,
+            "due_date": here.due_date
         });
     }
 
@@ -125,6 +130,25 @@ walker:priv DeleteTodo {
         if here.id == self.todo_id {
             del here;
             report {"deleted": self.todo_id};
+        }
+    }
+}
+
+walker:priv UpdateDueDate {
+    has todo_id: str;
+    has due_date: str;
+
+    can search with Root entry {
+        visit[-->];
+    }
+
+    can update with Todo entry {
+        if here.id == self.todo_id {
+            here.due_date = self.due_date;
+            report {
+                "id": here.id,
+                "due_date": here.due_date
+            };
         }
     }
 }

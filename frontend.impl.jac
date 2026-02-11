@@ -9,15 +9,19 @@ impl app.fetchTodos -> None {
 
 impl app.addTodo -> None {
     if not newTodoText.trim() { return; }
-    response = root spawn AddTodo(title=newTodoText);
-    newTodo = response.reports[0];
-    todos = todos.concat([{
-        "id": newTodo.id,
-        "title": newTodo.title,
-        "completed": newTodo.completed,
-        "category": newTodo.category
-    }]);
+    response = root spawn AddTodo(title=newTodoText, due_date=dueDate);
+    if response.reports and response.reports.length > 0 {
+        newTodo = response.reports[0];
+        todos = todos.concat([{
+            "id": newTodo.id,
+            "title": newTodo.title,
+            "completed": newTodo.completed,
+            "category": newTodo.category,
+            "due_date": newTodo.due_date
+        }]);
+    }
     newTodoText = "";
+    dueDate = "";
 }
 
 impl app.toggleTodo(todoId: str) -> None {
@@ -27,7 +31,7 @@ impl app.toggleTodo(todoId: str) -> None {
             if t.id == todoId {
                 return {
                     "id": t.id, "title": t.title,
-                    "completed": not t.completed, "category": t.category
+                    "completed": not t.completed, "category": t.category, "due_date": t.due_date
                 };
             }
             return t;
@@ -132,4 +136,23 @@ impl app.getIngredientsTotal -> float {
         total = total + ing.cost;
     }
     return total;
+}
+
+impl app.updateDueDate(todoId: str, date: str) -> None {
+    root spawn UpdateDueDate(todo_id=todoId, due_date=date);
+
+    todos = todos.map(
+        lambda t: any -> any {
+            if t.id == todoId {
+                return {
+                    "id": t.id,
+                    "title": t.title,
+                    "completed": t.completed,
+                    "category": t.category,
+                    "due_date": date
+                };
+            }
+            return t;
+        }
+    );
 }

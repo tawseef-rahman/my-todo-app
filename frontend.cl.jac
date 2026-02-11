@@ -10,7 +10,8 @@ import from .components.IngredientItem { IngredientItem }
 
 sv import from main {
     AddTodo, ListTodos, ToggleTodo, DeleteTodo,
-    GenerateShoppingList, ListMealPlan, ClearMealPlan
+    GenerateShoppingList, ListMealPlan, ClearMealPlan,
+    UpdateDueDate
 }
 
 def:pub app -> any {
@@ -26,7 +27,8 @@ def:pub app -> any {
         todosLoading: bool = True,
         mealInput: str = "",
         ingredients: list = [],
-        ingredientsLoading: bool = False;
+        ingredientsLoading: bool = False,
+        dueDate: str = "";
 
     can with entry {
         isLoggedIn = jacIsLoggedIn();
@@ -55,6 +57,7 @@ def:pub app -> any {
     async def clearIngredients -> None;
     def handleMealKeyPress(e: any) -> None;
     def getIngredientsTotal -> float;
+    async def updateDueDate(todoId: str, date: str) -> None;
 
     if checkingAuth {
         return
@@ -95,6 +98,13 @@ def:pub app -> any {
                                         placeholder="What needs to be done?"
                                         className="todo-input"
                                     />
+                                    <input
+                                        type="date"
+                                        value={dueDate}
+                                        onChange={lambda e : any -> None { dueDate = e.target.value; }}
+                                        className="todo-input"
+                                        style={{"maxwidth": "160px"}}
+                                    />
                                     <button
                                         onClick={lambda -> None { addTodo(); }}
                                         className="btn-add"
@@ -120,6 +130,7 @@ def:pub app -> any {
                                                         todo={todo}
                                                         onToggle={toggleTodo}
                                                         onDelete={deleteTodo}
+                                                        onUpdateDueDate={updateDueDate}
                                                     /> for todo in todos
                                                 ]}
                                             </div>
